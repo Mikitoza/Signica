@@ -1,0 +1,27 @@
+{
+  "common": {
+    "appName": "Signica"
+  },
+  "documents": {
+    "filters": {
+      "all": "All",
+      "signed": "Signed",
+      "unsigned": "Unsigned"
+    },
+    "empty": {
+      "title": "No Documents Yet",
+      "subtitle": "You can add documents from"
+    },
+    "sources": {
+      "files": "Files",
+      "photos": "Photos",
+      "scanner": "Scanner"
+    },
+    "search": "Search",
+    "addDocument": "Add Document"
+  },
+  "menu": {
+    "select": "Select",
+    "addDocument": "Add Document"
+  }
+}
