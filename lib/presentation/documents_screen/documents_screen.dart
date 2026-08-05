@@ -1,104 +1,44 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:signica/presentation/const/colors.dart';
+import 'package:signica/presentation/documents_screen/widgets/signica_app_bar.dart';
 
-/// Empty state of the main "Documents" screen — shown when the user has not
-/// added any documents yet.
-class DocumentsEmptyScreen extends StatefulWidget {
-  const DocumentsEmptyScreen({super.key});
+class DocumentsScreen extends StatefulWidget {
+  const DocumentsScreen({super.key});
 
   @override
-  State<DocumentsEmptyScreen> createState() => _DocumentsEmptyScreenState();
+  State<DocumentsScreen> createState() => _DocumentsScreenState();
 }
 
-class _DocumentsEmptyScreenState extends State<DocumentsEmptyScreen> {
+class _DocumentsScreenState extends State<DocumentsScreen> {
   int _selectedFilter = 0;
 
-  static const _background = Color(0xFF17171A);
   static const _cardBackground = Color(0xFFF3F3F4);
   static const _accentGreen = Color(0xFF8FE637);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _Header(background: _background, accentGreen: _accentGreen),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 0, 0, 12),
-                child: _DocumentsCard(
-                  cardBackground: _cardBackground,
-                  selectedFilter: _selectedFilter,
-                  onFilterSelected: (index) =>
-                      setState(() => _selectedFilter = index),
-                ),
+    return GlassScaffold(
+      enableBackgroundSampling:true,
+      extendBody: false,
+      backgroundColor: AppColors.backgroundColor,
+      appBar: SignicaAppBar(),
+      body: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 12),
+              child: _DocumentsCard(
+                cardBackground: _cardBackground,
+                selectedFilter: _selectedFilter,
+                onFilterSelected: (index) =>
+                    setState(() => _selectedFilter = index),
               ),
             ),
-            _BottomActionBar(accentGreen: _accentGreen),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header({required this.background, required this.accentGreen});
-
-  final Color background;
-  final Color accentGreen;
-
-  @override
-  Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData(brightness: Brightness.dark),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 16, 16),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: accentGreen,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              alignment: Alignment.center,
-              child: const Text(
-                'S',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 20,
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Text(
-              'Signica',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 20,
-              ),
-            ),
-            const Spacer(),
-            GlassIconButton(
-              icon: const Icon(
-                CupertinoIcons.ellipsis,
-                color: Colors.white,
-              ),
-              size: 40,
-              iconSize: 18,
-              useOwnLayer: true,
-              onPressed: () {},
-              semanticLabel: 'More options',
-            ),
-          ],
-        ),
+          ),
+          _BottomActionBar(accentGreen: _accentGreen),
+        ],
       ),
     );
   }
@@ -316,11 +256,7 @@ class _DocumentIllustration extends StatelessWidget {
                   color: Colors.black.withValues(alpha: 0.8),
                 ),
                 const SizedBox(height: 4),
-                Container(
-                  height: 2,
-                  width: 60,
-                  color: const Color(0xFF8FE637),
-                ),
+                Container(height: 2, width: 60, color: const Color(0xFF8FE637)),
               ],
             ),
           ),
@@ -386,8 +322,7 @@ class _BottomActionBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(28),
                 onTap: () {},
                 child: const Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+                  padding: EdgeInsets.symmetric(horizontal: 22, vertical: 15),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

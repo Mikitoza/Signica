@@ -1,7 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
-import 'screens/documents_empty_screen.dart';
+import 'presentation/documents_screen/documents_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,14 +21,14 @@ class SignicaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return CupertinoApp(
       title: 'Signica',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF8FE637),
+      theme: CupertinoThemeData(
+        brightness: Brightness.dark,
+        primaryColor: Color(0xFF4A90E2),
       ),
-      home: const DocumentsEmptyScreen(),
+      home: const DocumentsScreen(),
     );
   }
 }
