@@ -16,7 +16,7 @@ class AppTextTheme {
     fontWeight: FontWeight.w700,
     color: AppColors.black,
     fontSize: 14,
-    height: 18/14,
+    height: 18 / 14,
     letterSpacing: -0.08,
   );
 
@@ -29,4 +29,12 @@ class AppTextTheme {
     letterSpacing: 0,
   );
 
+  static final actionTextStyle = TextStyle(
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w600,
+    color: AppColors.actionBlackTextColor,
+    fontSize: 12,
+    height: 18 / 12,
+    letterSpacing: 0,
+  );
 }

@@ -61,6 +61,29 @@ class LocalDatasourceImpl implements LocalDatasource {
   }
 
   @override
+  Future<List<DocumentEntity>> getDocumentsByIds(List<int> ids) async {
+    if (ids.isEmpty) return const [];
+    final query = _database.select(_database.documentsTable)
+      ..where((t) => t.id.isIn(ids));
+    return _toEntities(await query.get());
+  }
+
+  @override
+  Future<void> deleteDocuments(List<int> ids) async {
+    if (ids.isEmpty) return;
+    await (_database.delete(
+      _database.documentsTable,
+    )..where((t) => t.id.isIn(ids))).go();
+  }
+
+  @override
+  Future<void> setSigned(int id, bool isSigned) async {
+    await (_database.update(_database.documentsTable)
+          ..where((t) => t.id.equals(id)))
+        .write(DocumentsTableCompanion(isSigned: Value(isSigned)));
+  }
+
+  @override
   Future<void> clearAllDocuments() async {
     await _database.delete(_database.documentsTable).go();
   }

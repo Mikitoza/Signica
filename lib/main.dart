@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'injection/injector.dart';
+import 'presentation/const/glass.dart';
 import 'presentation/router/app_router.dart';
 
 Future<void> main() async {
@@ -17,9 +18,12 @@ Future<void> main() async {
       supportedLocales: const [Locale('en')],
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
-      child: LiquidGlassWidgets.wrap(
-        child: const SignicaApp(),
-        brightnessResolver: Theme.maybeBrightnessOf,
+      child: GlassTheme(
+        data: AppGlass.themeData(),
+        child: LiquidGlassWidgets.wrap(
+          child: const SignicaApp(),
+          brightnessResolver: Theme.maybeBrightnessOf,
+        ),
       ),
     ),
   );

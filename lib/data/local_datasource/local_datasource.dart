@@ -12,5 +12,11 @@ abstract class LocalDatasource {
 
   Future<List<DocumentEntity>> getAllDocuments();
 
+  Future<List<DocumentEntity>> getDocumentsByIds(List<int> ids);
+
+  Future<void> deleteDocuments(List<int> ids);
+
+  Future<void> setSigned(int id, bool isSigned);
+
   Future<void> clearAllDocuments();
 }

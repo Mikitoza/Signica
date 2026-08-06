@@ -216,12 +216,7 @@ class DocumentRow extends DataClass implements Insertable<DocumentRow> {
   final String filePath;
   final DateTime createdAt;
   final bool isSigned;
-
-  /// Cached page-1 thumbnail path — nullable because it's populated by a
-  /// best-effort render step that can fail without blocking the save.
   final String? firstPageImagePath;
-
-  /// Cached last-page thumbnail path — null for single-page documents.
   final String? lastPageImagePath;
   const DocumentRow({
     required this.id,

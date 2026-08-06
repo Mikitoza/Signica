@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:signica/presentation/const/assets.dart';
 import 'package:signica/presentation/const/colors.dart';
+import 'package:signica/presentation/const/glass.dart';
 import 'package:signica/presentation/const/text_theme.dart';
 import 'package:signica/presentation/const/translation_keys.dart';
 
@@ -13,10 +14,20 @@ class SignicaHeader extends StatefulWidget implements PreferredSizeWidget {
     super.key,
     required this.onAddDocument,
     required this.onClearAll,
+    required this.onEnterSelectionMode,
+    required this.onExitSelectionMode,
+    required this.onToggleSelectAll,
+    this.isSelectionMode = false,
+    this.selectedCount = 0,
   });
 
   final VoidCallback onAddDocument;
   final VoidCallback onClearAll;
+  final VoidCallback onEnterSelectionMode;
+  final VoidCallback onExitSelectionMode;
+  final VoidCallback onToggleSelectAll;
+  final bool isSelectionMode;
+  final int selectedCount;
 
   @override
   Size get preferredSize => const Size.fromHeight(66);
@@ -43,6 +54,7 @@ class _SignicaHeaderState extends State<SignicaHeader> {
       builder: (context) => _HeaderMenuOverlay(
         layerLink: _menuLink,
         onDismissed: _closeMenu,
+        onSelect: widget.onEnterSelectionMode,
         onAddDocument: widget.onAddDocument,
         onClearAll: widget.onClearAll,
       ),
@@ -73,29 +85,97 @@ class _SignicaHeaderState extends State<SignicaHeader> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  SvgPicture.asset(AppAssets.logo),
-                  const SizedBox(width: 10),
-                  Text(
-                    AppTranslationKeys.appName.tr(),
-                    style: AppTextTheme.logoLabelStyle,
-                  ),
-                ],
+              Flexible(
+                child: widget.isSelectionMode
+                    ? _SelectAllButton(
+                        selectedCount: widget.selectedCount,
+                        onTap: widget.onToggleSelectAll,
+                      )
+                    : const _AppLogo(),
               ),
-              CompositedTransformTarget(
-                link: _menuLink,
-                child: GlassButton(
-                  glowColor: AppColors.white.withValues(alpha: 0.1),
-                  icon: const Icon(Icons.more_horiz),
-                  iconColor: Colors.white,
-                  width: 38,
-                  height: 38,
-                  shape: LiquidRoundedRectangle(borderRadius: 16),
-                  onTap: _toggleMenu,
-                ),
-              ),
+              const SizedBox(width: 12),
+              widget.isSelectionMode
+                  ? GlassButton(
+                      glowColor: AppColors.white.withValues(alpha: 0.1),
+                      icon: const Icon(CupertinoIcons.xmark),
+                      iconColor: Colors.white,
+                      iconSize: 20,
+                      width: 38,
+                      height: 38,
+                      shape: LiquidRoundedRectangle(borderRadius: 19),
+                      onTap: widget.onExitSelectionMode,
+                    )
+                  : CompositedTransformTarget(
+                      link: _menuLink,
+                      child: GlassButton(
+                        glowColor: AppColors.white.withValues(alpha: 0.1),
+                        icon: const Icon(Icons.more_horiz),
+                        iconColor: Colors.white,
+                        width: 38,
+                        height: 38,
+                        shape: LiquidRoundedRectangle(borderRadius: 16),
+                        onTap: _toggleMenu,
+                      ),
+                    ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AppLogo extends StatelessWidget {
+  const _AppLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SvgPicture.asset(AppAssets.logo),
+        const SizedBox(width: 10),
+        Text(
+          AppTranslationKeys.appName.tr(),
+          style: AppTextTheme.logoLabelStyle,
+        ),
+      ],
+    );
+  }
+}
+
+class _SelectAllButton extends StatelessWidget {
+  const _SelectAllButton({required this.selectedCount, required this.onTap});
+
+  final int selectedCount;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = selectedCount > 0
+        ? AppTranslationKeys.selectionDeselectAll.tr(
+            namedArgs: {'count': '$selectedCount'},
+          )
+        : AppTranslationKeys.selectionSelectAll.tr();
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: GlassButton.custom(
+        onTap: onTap,
+        label: label,
+        glowColor: AppColors.white.withValues(alpha: 0.1),
+        shape: const LiquidRoundedRectangle(borderRadius: 999),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextTheme.logoLabelStyle.copyWith(
+              fontSize: 14,
+              height: 18 / 14,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ),
@@ -107,12 +187,14 @@ class _HeaderMenuOverlay extends StatefulWidget {
   const _HeaderMenuOverlay({
     required this.layerLink,
     required this.onDismissed,
+    required this.onSelect,
     required this.onAddDocument,
     required this.onClearAll,
   });
 
   final LayerLink layerLink;
   final VoidCallback onDismissed;
+  final VoidCallback onSelect;
   final VoidCallback onAddDocument;
   final VoidCallback onClearAll;
 
@@ -164,9 +246,9 @@ class _HeaderMenuOverlayState extends State<_HeaderMenuOverlay>
               scale: Tween(begin: 0.9, end: 1.0).animate(curved),
               alignment: Alignment.topRight,
               child: _HeaderMenuCard(
-                onSelect: () {
-                  _dismiss();
-                  // TODO: wire up multi-select mode once it exists.
+                onSelect: () async {
+                  await _dismiss();
+                  widget.onSelect();
                 },
                 onAddDocument: () async {
                   await _dismiss();
@@ -202,9 +284,9 @@ class _HeaderMenuCard extends StatelessWidget {
       width: 220,
       allowElevation: true,
       useOwnLayer: true,
-      settings: LiquidGlassSettings(
+      settings: AppGlass.settings(
         glassColor: Colors.white.withValues(alpha: 0.75),
-        blur: 16,
+        frost: 16,
         whitenStrength: 0.2,
         shadowElevation: 3,
       ),
@@ -287,7 +369,9 @@ class _HeaderMenuTile extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: 17,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w400,
+                  height: 20 / 17,
+                  letterSpacing: -0.43,
                   color: isDestructive
                       ? CupertinoColors.destructiveRed
                       : Colors.black,

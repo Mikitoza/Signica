@@ -24,6 +24,21 @@
     "searchPlaceholder": "Search Documents",
     "noResults": "No documents found"
   },
+  "actions": {
+    "print": "Print",
+    "share": "Share",
+    "delete": "Delete"
+  },
+  "selection": {
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All ({count})",
+    "exit": "Done",
+    "delete": "Delete",
+    "share": "Share",
+    "deleteConfirmTitle": "Delete Documents?",
+    "deleteConfirmMessage": "The selected documents will be permanently deleted. This action cannot be undone.",
+    "deleteConfirmAction": "Delete"
+  },
   "menu": {
     "select": "Select",
     "addDocument": "Add Document",

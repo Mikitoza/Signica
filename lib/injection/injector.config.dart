@@ -23,8 +23,12 @@ import 'package:signica/data/datasources/pdf_preview_datasource_impl.dart'
 import 'package:signica/data/datasources/photos_picker_datasource.dart' as _i4;
 import 'package:signica/data/datasources/photos_picker_datasource_impl.dart'
     as _i792;
+import 'package:signica/data/datasources/print_datasource.dart' as _i539;
+import 'package:signica/data/datasources/print_datasource_impl.dart' as _i647;
 import 'package:signica/data/datasources/scanner_datasource.dart' as _i21;
 import 'package:signica/data/datasources/scanner_datasource_impl.dart' as _i477;
+import 'package:signica/data/datasources/share_datasource.dart' as _i550;
+import 'package:signica/data/datasources/share_datasource_impl.dart' as _i1035;
 import 'package:signica/data/local_datasource/database/app_database.dart'
     as _i723;
 import 'package:signica/data/local_datasource/local_datasource.dart' as _i884;
@@ -34,12 +38,17 @@ import 'package:signica/data/repository/repository_impl.dart' as _i61;
 import 'package:signica/domain/repositories/documents_repository.dart' as _i574;
 import 'package:signica/domain/usecases/clear_all_documents_usecase.dart'
     as _i400;
+import 'package:signica/domain/usecases/delete_documents_usecase.dart' as _i604;
 import 'package:signica/domain/usecases/import_document_from_photos_usecase.dart'
-    as _i647;
+    as _i648;
 import 'package:signica/domain/usecases/import_document_from_scanner_usecase.dart'
     as _i464;
 import 'package:signica/domain/usecases/import_pdf_from_files_usecase.dart'
     as _i885;
+import 'package:signica/domain/usecases/print_document_usecase.dart' as _i808;
+import 'package:signica/domain/usecases/set_document_signed_usecase.dart'
+    as _i916;
+import 'package:signica/domain/usecases/share_documents_usecase.dart' as _i585;
 import 'package:signica/domain/usecases/watch_documents_usecase.dart' as _i948;
 import 'package:signica/presentation/documents_screen/bloc/documents_bloc.dart'
     as _i381;
@@ -57,12 +66,14 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i4.PhotosPickerDatasource>(
       () => _i792.PhotosPickerDatasourceImpl(),
     );
+    gh.lazySingleton<_i550.ShareDatasource>(() => _i1035.ShareDatasourceImpl());
     gh.lazySingleton<_i884.LocalDatasource>(
       () => _i92.LocalDatasourceImpl(gh<_i723.AppDatabase>()),
     );
     gh.lazySingleton<_i513.PdfBuilderDatasource>(
       () => _i485.PdfBuilderDatasourceImpl(),
     );
+    gh.lazySingleton<_i539.PrintDatasource>(() => _i647.PrintDatasourceImpl());
     gh.lazySingleton<_i21.ScannerDatasource>(
       () => _i477.ScannerDatasourceImpl(),
     );
@@ -79,14 +90,19 @@ extension GetItInjectableX on _i174.GetIt {
         photosPickerDatasource: gh<_i4.PhotosPickerDatasource>(),
         pdfBuilderDatasource: gh<_i513.PdfBuilderDatasource>(),
         pdfPreviewDatasource: gh<_i623.PdfPreviewDatasource>(),
+        shareDatasource: gh<_i550.ShareDatasource>(),
+        printDatasource: gh<_i539.PrintDatasource>(),
         localDatasource: gh<_i884.LocalDatasource>(),
       ),
     );
     gh.factory<_i400.ClearAllDocumentsUseCase>(
       () => _i400.ClearAllDocumentsUseCase(gh<_i574.DocumentsRepository>()),
     );
-    gh.factory<_i647.ImportDocumentFromPhotosUseCase>(
-      () => _i647.ImportDocumentFromPhotosUseCase(
+    gh.factory<_i604.DeleteDocumentsUseCase>(
+      () => _i604.DeleteDocumentsUseCase(gh<_i574.DocumentsRepository>()),
+    );
+    gh.factory<_i648.ImportDocumentFromPhotosUseCase>(
+      () => _i648.ImportDocumentFromPhotosUseCase(
         gh<_i574.DocumentsRepository>(),
       ),
     );
@@ -98,6 +114,15 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i885.ImportPdfFromFilesUseCase>(
       () => _i885.ImportPdfFromFilesUseCase(gh<_i574.DocumentsRepository>()),
     );
+    gh.factory<_i808.PrintDocumentUseCase>(
+      () => _i808.PrintDocumentUseCase(gh<_i574.DocumentsRepository>()),
+    );
+    gh.factory<_i916.SetDocumentSignedUseCase>(
+      () => _i916.SetDocumentSignedUseCase(gh<_i574.DocumentsRepository>()),
+    );
+    gh.factory<_i585.ShareDocumentsUseCase>(
+      () => _i585.ShareDocumentsUseCase(gh<_i574.DocumentsRepository>()),
+    );
     gh.factory<_i948.WatchDocumentsUseCase>(
       () => _i948.WatchDocumentsUseCase(gh<_i574.DocumentsRepository>()),
     );
@@ -105,9 +130,13 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i381.DocumentsBloc(
         importPdfFromFiles: gh<_i885.ImportPdfFromFilesUseCase>(),
         importDocumentFromScanner: gh<_i464.ImportDocumentFromScannerUseCase>(),
-        importDocumentFromPhotos: gh<_i647.ImportDocumentFromPhotosUseCase>(),
+        importDocumentFromPhotos: gh<_i648.ImportDocumentFromPhotosUseCase>(),
         watchDocuments: gh<_i948.WatchDocumentsUseCase>(),
         clearAllDocuments: gh<_i400.ClearAllDocumentsUseCase>(),
+        deleteDocuments: gh<_i604.DeleteDocumentsUseCase>(),
+        shareDocuments: gh<_i585.ShareDocumentsUseCase>(),
+        setDocumentSigned: gh<_i916.SetDocumentSignedUseCase>(),
+        printDocument: gh<_i808.PrintDocumentUseCase>(),
       ),
     );
     return this;

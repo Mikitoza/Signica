@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:injectable/injectable.dart';
 import 'package:path/path.dart' as p;
@@ -7,7 +8,9 @@ import 'package:signica/data/datasources/files_picker_datasource.dart';
 import 'package:signica/data/datasources/pdf_builder_datasource.dart';
 import 'package:signica/data/datasources/pdf_preview_datasource.dart';
 import 'package:signica/data/datasources/photos_picker_datasource.dart';
+import 'package:signica/data/datasources/print_datasource.dart';
 import 'package:signica/data/datasources/scanner_datasource.dart';
+import 'package:signica/data/datasources/share_datasource.dart';
 import 'package:signica/data/local_datasource/local_datasource.dart';
 import 'package:signica/domain/entities/document_entity.dart';
 import 'package:signica/domain/repositories/documents_repository.dart';
@@ -20,6 +23,8 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
     required this._photosPickerDatasource,
     required this._pdfBuilderDatasource,
     required this._pdfPreviewDatasource,
+    required this._shareDatasource,
+    required this._printDatasource,
     required this._localDatasource,
   });
 
@@ -28,7 +33,11 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
   final PhotosPickerDatasource _photosPickerDatasource;
   final PdfBuilderDatasource _pdfBuilderDatasource;
   final PdfPreviewDatasource _pdfPreviewDatasource;
+  final ShareDatasource _shareDatasource;
+  final PrintDatasource _printDatasource;
   final LocalDatasource _localDatasource;
+
+  static const _generatedDocumentTitle = 'New Document';
 
   @override
   Future<DocumentEntity?> importFromFiles() async {
@@ -36,7 +45,10 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
     if (pickedPath == null) return null;
 
     final savedPath = await _persistPdf(pickedPath);
-    return _saveDocument(savedPath);
+    return _saveDocument(
+      savedPath,
+      title: p.basenameWithoutExtension(pickedPath),
+    );
   }
 
   @override
@@ -45,7 +57,7 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
     if (imagePaths.isEmpty) return null;
 
     final pdfPath = await _pdfBuilderDatasource.buildFromImages(imagePaths);
-    return _saveDocument(pdfPath);
+    return _saveDocument(pdfPath, title: _generatedDocumentTitle);
   }
 
   @override
@@ -54,7 +66,7 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
     if (imagePaths.isEmpty) return null;
 
     final pdfPath = await _pdfBuilderDatasource.buildFromImages(imagePaths);
-    return _saveDocument(pdfPath);
+    return _saveDocument(pdfPath, title: _generatedDocumentTitle);
   }
 
   @override
@@ -72,6 +84,39 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
     await _localDatasource.clearAllDocuments();
   }
 
+  @override
+  Future<void> deleteDocuments(List<int> ids) async {
+    if (ids.isEmpty) return;
+
+    final documents = await _localDatasource.getDocumentsByIds(ids);
+    for (final document in documents) {
+      await _deleteFileIfExists(document.filePath);
+      await _deleteFileIfExists(document.firstPageImagePath);
+      await _deleteFileIfExists(document.lastPageImagePath);
+    }
+    await _localDatasource.deleteDocuments(ids);
+  }
+
+  @override
+  Future<void> shareDocuments(
+    List<int> ids, {
+    Rect? sharePositionOrigin,
+  }) async {
+    if (ids.isEmpty) return;
+
+    final documents = await _localDatasource.getDocumentsByIds(ids);
+    final paths = <String>[];
+    for (final document in documents) {
+      if (await File(document.filePath).exists()) {
+        paths.add(document.filePath);
+      }
+    }
+    await _shareDatasource.shareFiles(
+      paths,
+      sharePositionOrigin: sharePositionOrigin,
+    );
+  }
+
   Future<void> _deleteFileIfExists(String? path) async {
     if (path == null) return;
     final file = File(path);
@@ -80,23 +125,52 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
     }
   }
 
-  Future<DocumentEntity> _saveDocument(String filePath) async {
-    final title = p.basenameWithoutExtension(filePath);
+  @override
+  Future<void> setDocumentSigned(int id, {required bool isSigned}) =>
+      _localDatasource.setSigned(id, isSigned);
+
+  @override
+  Future<void> printDocument(int id) async {
+    final documents = await _localDatasource.getDocumentsByIds([id]);
+    if (documents.isEmpty) return;
+
+    final document = documents.first;
+    if (!await File(document.filePath).exists()) return;
+
+    await _printDatasource.printPdf(document.filePath, name: document.title);
+  }
+
+  Future<DocumentEntity> _saveDocument(
+    String filePath, {
+    required String title,
+  }) async {
+    final uniqueTitle = await _uniqueTitle(title);
     String? firstPageImagePath;
     String? lastPageImagePath;
     try {
       final previews = await _pdfPreviewDatasource.renderPreviews(filePath);
       firstPageImagePath = previews.firstPagePath;
       lastPageImagePath = previews.lastPagePath;
-    } catch (_) {
-    }
+    } catch (_) {}
 
     return _localDatasource.insertDocument(
-      title: title,
+      title: uniqueTitle,
       filePath: filePath,
       firstPageImagePath: firstPageImagePath,
       lastPageImagePath: lastPageImagePath,
     );
+  }
+
+  Future<String> _uniqueTitle(String title) async {
+    final documents = await _localDatasource.getAllDocuments();
+    final takenTitles = documents.map((document) => document.title).toSet();
+    if (!takenTitles.contains(title)) return title;
+
+    var suffix = 2;
+    while (takenTitles.contains('$title $suffix')) {
+      suffix++;
+    }
+    return '$title $suffix';
   }
 
   Future<String> _persistPdf(String sourcePath) async {

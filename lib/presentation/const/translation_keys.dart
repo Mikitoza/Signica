@@ -24,6 +24,21 @@ class AppTranslationKeys {
   static const documentsSearchPlaceholder = 'documents.searchPlaceholder';
   static const documentsNoResults = 'documents.noResults';
 
+  // actions (document context menu)
+  static const actionPrint = 'actions.print';
+  static const actionShare = 'actions.share';
+  static const actionDelete = 'actions.delete';
+
+  // documents.selection
+  static const selectionSelectAll = 'selection.selectAll';
+  static const selectionDeselectAll = 'selection.deselectAll';
+  static const selectionExit = 'selection.exit';
+  static const selectionDelete = 'selection.delete';
+  static const selectionShare = 'selection.share';
+  static const selectionDeleteConfirmTitle = 'selection.deleteConfirmTitle';
+  static const selectionDeleteConfirmMessage = 'selection.deleteConfirmMessage';
+  static const selectionDeleteConfirmAction = 'selection.deleteConfirmAction';
+
   // menu
   static const menuSelect = 'menu.select';
   static const menuAddDocument = 'menu.addDocument';
