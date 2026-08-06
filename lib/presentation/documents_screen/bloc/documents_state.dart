@@ -22,8 +22,6 @@ class DocumentsState extends Equatable {
   final String searchQuery;
   final String? errorMessage;
 
-  /// Documents left after the All / Signed / Unsigned control and the search
-  /// query.
   List<DocumentEntity> get visibleDocuments {
     final query = searchQuery.trim().toLowerCase();
     return documents.where((document) {

@@ -83,8 +83,6 @@ class DocumentsBloc extends Bloc<DocumentsEvent, DocumentsState> {
     return emit.forEach<List<DocumentEntity>>(
       _watchDocuments(),
       onData: (documents) {
-        // Documents can disappear while selection mode is on, so drop ids that
-        // no longer exist and leave the mode once nothing is left to act on.
         final availableIds = documents.map((document) => document.id).toSet();
         final selectedIds = state.selectedIds.intersection(availableIds);
         return state.copyWith(
@@ -235,7 +233,6 @@ class DocumentsBloc extends Bloc<DocumentsEvent, DocumentsState> {
     DocumentsSelectAllToggled event,
     Emitter<DocumentsState> emit,
   ) {
-    // Anything selected turns the control into "deselect all".
     final selectedIds = state.hasSelection
         ? const <int>{}
         : state.visibleDocuments.map((document) => document.id).toSet();

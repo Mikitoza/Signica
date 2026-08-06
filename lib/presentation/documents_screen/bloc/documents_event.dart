@@ -38,7 +38,6 @@ class DocumentsClearAllRequested extends DocumentsEvent {
   const DocumentsClearAllRequested();
 }
 
-/// The bottom bar's search button turns into a field in place.
 class DocumentsSearchOpened extends DocumentsEvent {
   const DocumentsSearchOpened();
 }
@@ -56,7 +55,6 @@ class DocumentsSearchQueryChanged extends DocumentsEvent {
   List<Object?> get props => [query];
 }
 
-/// A plain tap on a document flips it between signed and unsigned.
 class DocumentSignatureToggled extends DocumentsEvent {
   const DocumentSignatureToggled(this.id);
 
@@ -66,7 +64,6 @@ class DocumentSignatureToggled extends DocumentsEvent {
   List<Object?> get props => [id];
 }
 
-/// Single-document actions, raised from the long-press context menu.
 class DocumentPrintRequested extends DocumentsEvent {
   const DocumentPrintRequested(this.id);
 
@@ -112,8 +109,6 @@ class DocumentSelectionToggled extends DocumentsEvent {
   List<Object?> get props => [id];
 }
 
-/// Selects every document, or clears the selection when all are already
-/// selected.
 class DocumentsSelectAllToggled extends DocumentsEvent {
   const DocumentsSelectAllToggled();
 }

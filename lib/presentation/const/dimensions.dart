@@ -156,10 +156,8 @@ class AppInsets {
   );
   static const contextDivider = EdgeInsets.symmetric(horizontal: AppGaps.xxl);
 
-  /// Breathing room above the empty-state illustration.
   static const emptyStateTop = 46.0;
 
-  /// Keeps an overlay clear of the screen edges.
   static const overlayEdge = AppGaps.m;
 }
 
