@@ -34,12 +34,6 @@ class AppGlass {
     );
   }
 
-  /// Flat frosted panel — blur and tint only.
-  ///
-  /// Zeroing depth removes the glass bevel, whose lit edge traces the whole
-  /// outline as a light band on a surface this large. Refraction and dispersion
-  /// go with it so the edge stops bending the content behind it, and no light
-  /// means no specular highlight running along the rim.
   static LiquidGlassSettings panel({
     required Color glassColor,
     double frost = 20,

@@ -56,7 +56,6 @@ class DocumentsScreen extends StatelessWidget {
                   extendBody: true,
                   appBar: SignicaHeader(
                     onAddDocument: openAddDocumentSheet,
-                    onClearAll: () => _confirmClearAll(context, bloc),
                     onEnterSelectionMode: () =>
                         bloc.add(const DocumentsSelectionModeEntered()),
                     onExitSelectionMode: () =>
@@ -152,28 +151,6 @@ Future<void> _confirmDeleteSelected(
         onPressed: () {
           Navigator.of(context).pop();
           bloc.add(const DocumentsDeleteSelectedRequested());
-        },
-      ),
-    ],
-  );
-}
-
-Future<void> _confirmClearAll(BuildContext context, DocumentsBloc bloc) async {
-  await GlassDialog.show<void>(
-    context: context,
-    title: AppTranslationKeys.menuClearAllConfirmTitle.tr(),
-    message: AppTranslationKeys.menuClearAllConfirmMessage.tr(),
-    actions: [
-      GlassDialogAction(
-        label: AppTranslationKeys.cancel.tr(),
-        onPressed: () => Navigator.of(context).pop(),
-      ),
-      GlassDialogAction(
-        label: AppTranslationKeys.menuClearAllConfirmAction.tr(),
-        isDestructive: true,
-        onPressed: () {
-          Navigator.of(context).pop();
-          bloc.add(const DocumentsClearAllRequested());
         },
       ),
     ],

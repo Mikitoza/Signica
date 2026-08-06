@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:signica/domain/entities/document_entity.dart';
 import 'package:signica/presentation/const/colors.dart';
+import 'package:signica/presentation/const/dimensions.dart';
 import 'package:signica/presentation/const/glass.dart';
 import 'package:signica/presentation/const/text_theme.dart';
 import 'package:signica/presentation/const/translation_keys.dart';
@@ -23,8 +25,8 @@ Future<void> showDocumentContextMenu(
       opaque: false,
       barrierColor: null,
       fullscreenDialog: true,
-      transitionDuration: const Duration(milliseconds: 180),
-      reverseTransitionDuration: const Duration(milliseconds: 140),
+      transitionDuration: AppDurations.contextMenuIn,
+      reverseTransitionDuration: AppDurations.contextMenuOut,
       pageBuilder: (routeContext, animation, _) => _DocumentContextMenuLayer(
         document: document,
         anchor: anchor,
@@ -54,8 +56,7 @@ class _DocumentContextMenuLayer extends StatelessWidget {
   final ValueChanged<Rect?> onShare;
   final VoidCallback onDelete;
 
-  static const _menuWidth = 264.0;
-  static const _gap = 12.0;
+  static const _gap = AppGaps.m;
 
   @override
   Widget build(BuildContext context) {
@@ -80,12 +81,12 @@ class _DocumentContextMenuLayer extends StatelessWidget {
               animation: curved,
               builder: (context, _) => BackdropFilter(
                 filter: ImageFilter.blur(
-                  sigmaX: 14 * curved.value,
-                  sigmaY: 14 * curved.value,
+                  sigmaX: AppBlurs.contextMenuBackdrop * curved.value,
+                  sigmaY: AppBlurs.contextMenuBackdrop * curved.value,
                 ),
                 child: ColoredBox(
-                  color: AppColors.scaffoldBackgroundColor.withValues(
-                    alpha: 0.45 * curved.value,
+                  color: AppColors.contextMenuScrim.withValues(
+                    alpha: AppColors.contextMenuScrim.a * curved.value,
                   ),
                 ),
               ),
@@ -96,7 +97,10 @@ class _DocumentContextMenuLayer extends StatelessWidget {
           rect: anchor,
           child: IgnorePointer(
             child: ScaleTransition(
-              scale: Tween(begin: 1.0, end: 1.04).animate(curved),
+              scale: Tween(
+                begin: 1.0,
+                end: AppRatios.contextMenuLift,
+              ).animate(curved),
               child: DocumentTile(document: document),
             ),
           ),
@@ -110,7 +114,12 @@ class _DocumentContextMenuLayer extends StatelessWidget {
                 scale: Tween(begin: 0.92, end: 1.0).animate(curved),
                 alignment: Alignment.topCenter,
                 child: _ContextMenuCard(
-                  width: _menuWidth,
+                  // Never wider than the screen allows.
+                  width: math.min(
+                    AppSizes.contextMenuWidth,
+                    MediaQuery.sizeOf(context).width -
+                        AppInsets.screenHorizontal * 2,
+                  ),
                   onPrint: () => dismissThen(onPrint),
                   onShare: (origin) => dismissThen(() => onShare(origin)),
                   onDelete: () => dismissThen(onDelete),
@@ -130,7 +139,7 @@ class _MenuLayoutDelegate extends SingleChildLayoutDelegate {
   final Rect anchor;
   final double gap;
 
-  static const _screenPadding = 12.0;
+  static const _screenPadding = AppInsets.overlayEdge;
 
   @override
   BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
@@ -180,10 +189,10 @@ class _ContextMenuCard extends StatelessWidget {
       allowElevation: true,
       useOwnLayer: true,
       settings: AppGlass.panel(
-        glassColor: AppColors.white.withValues(alpha: 0.94),
+        glassColor: AppColors.glassWhiteStrong,
         shadowElevation: 1.5,
       ),
-      shape: const LiquidRoundedRectangle(borderRadius: 30),
+      shape: const LiquidRoundedRectangle(borderRadius: AppRadii.menuCard),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -210,10 +219,10 @@ class _ContextMenuCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 26),
+            padding: AppInsets.contextDivider,
             child: Container(
-              height: 1,
-              color: AppColors.black.withValues(alpha: 0.1),
+              height: AppSizes.dividerThickness,
+              color: AppColors.divider,
             ),
           ),
           _DeleteAction(onTap: onDelete),
@@ -246,13 +255,27 @@ class _StackedAction extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 20, 8, 16),
+        padding: const EdgeInsets.fromLTRB(
+          AppGaps.s,
+          AppGaps.xl,
+          AppGaps.s,
+          AppGaps.l,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 22, color: AppColors.black),
-            const SizedBox(height: 8),
-            Text(label, style: AppTextTheme.actionTextStyle),
+            Icon(
+              icon,
+              size: AppSizes.contextActionIcon,
+              color: AppColors.black,
+            ),
+            AppGaps.gapS,
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextTheme.actionTextStyle,
+            ),
           ],
         ),
       ),
@@ -271,23 +294,26 @@ class _DeleteAction extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(26, 16, 26, 20),
+        padding: const EdgeInsets.fromLTRB(
+          AppGaps.xxl,
+          AppGaps.l,
+          AppGaps.xxl,
+          AppGaps.xl,
+        ),
         child: Row(
           children: [
             const Icon(
               CupertinoIcons.trash,
-              size: 21,
-              color: CupertinoColors.destructiveRed,
+              size: AppSizes.contextDeleteIcon,
+              color: AppColors.actionRed,
             ),
-            const SizedBox(width: 16),
-            Text(
-              AppTranslationKeys.actionDelete.tr(),
-              style: AppTextTheme.actionTextStyle.copyWith(
-                color: AppColors.actionRed,
-                fontWeight: FontWeight.w400,
-                letterSpacing: -0.43,
-                fontSize: 17,
-                height: 20 / 17,
+            AppGaps.hGapL,
+            Flexible(
+              child: Text(
+                AppTranslationKeys.actionDelete.tr(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextTheme.menuTileDestructiveStyle,
               ),
             ),
           ],

@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:signica/presentation/const/assets.dart';
 import 'package:signica/presentation/const/colors.dart';
+import 'package:signica/presentation/const/dimensions.dart';
 import 'package:signica/presentation/const/glass.dart';
 import 'package:signica/presentation/const/text_theme.dart';
 import 'package:signica/presentation/const/translation_keys.dart';
@@ -19,8 +20,8 @@ Future<void> showAddDocumentSheet(
     PageRouteBuilder<void>(
       opaque: false,
       barrierColor: null,
-      transitionDuration: const Duration(milliseconds: 220),
-      reverseTransitionDuration: const Duration(milliseconds: 160),
+      transitionDuration: AppDurations.sheetIn,
+      reverseTransitionDuration: AppDurations.sheetOut,
       pageBuilder: (routeContext, animation, _) => AddDocumentSheet(
         animation: animation,
         onPickFiles: onPickFiles,
@@ -45,9 +46,6 @@ class AddDocumentSheet extends StatelessWidget {
   final VoidCallback onPickPhotos;
   final VoidCallback onPickScanner;
 
-  static const _headerHeight = 66.0;
-  static const _boardRadius = 36.0;
-
   @override
   Widget build(BuildContext context) {
     final curved = CurvedAnimation(
@@ -55,7 +53,7 @@ class AddDocumentSheet extends StatelessWidget {
       curve: Curves.easeOutCubic,
       reverseCurve: Curves.easeInCubic,
     );
-    final boardTop = MediaQuery.paddingOf(context).top + _headerHeight;
+    final boardTop = MediaQuery.paddingOf(context).top + AppSizes.headerHeight;
 
     void dismissThen(VoidCallback action) {
       Navigator.of(context).pop();
@@ -73,17 +71,17 @@ class AddDocumentSheet extends StatelessWidget {
             right: 0,
             bottom: 0,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(_boardRadius),
+              borderRadius: BorderRadius.circular(AppRadii.board),
               child: AnimatedBuilder(
                 animation: curved,
                 builder: (context, _) => BackdropFilter(
                   filter: ui.ImageFilter.blur(
-                    sigmaX: 20 * curved.value,
-                    sigmaY: 20 * curved.value,
+                    sigmaX: AppBlurs.sheetBackdrop * curved.value,
+                    sigmaY: AppBlurs.sheetBackdrop * curved.value,
                   ),
                   child: ColoredBox(
-                    color: AppColors.white.withValues(
-                      alpha: 0.2 * curved.value,
+                    color: AppColors.sheetScrim.withValues(
+                      alpha: AppColors.sheetScrim.a * curved.value,
                     ),
                   ),
                 ),
@@ -103,14 +101,14 @@ class AddDocumentSheet extends StatelessWidget {
                 ).animate(curved),
                 child: SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 16, 8),
+                    padding: AppInsets.bottomBar,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         IntrinsicWidth(
                           child: Padding(
-                            padding: const EdgeInsets.only(right: 12),
+                            padding: const EdgeInsets.only(right: AppGaps.m),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -120,13 +118,13 @@ class AddDocumentSheet extends StatelessWidget {
                                   label: AppTranslationKeys.sourceFiles.tr(),
                                   onTap: () => dismissThen(onPickFiles),
                                 ),
-                                const SizedBox(height: 14),
+                                AppGaps.gapM,
                                 _SourcePill(
                                   iconAsset: AppAssets.photoIcon,
                                   label: AppTranslationKeys.sourcePhotos.tr(),
                                   onTap: () => dismissThen(onPickPhotos),
                                 ),
-                                const SizedBox(height: 14),
+                                AppGaps.gapM,
                                 _SourcePill(
                                   iconAsset: AppAssets.cameraIcon,
                                   label: AppTranslationKeys.sourceScanner.tr(),
@@ -136,33 +134,31 @@ class AddDocumentSheet extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        AppGaps.gapM,
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            Text(
-                              AppTranslationKeys.documentsAddDocumentFrom.tr(),
-                              textAlign: TextAlign.right,
-                              style: AppTextTheme.logoLabelStyle.copyWith(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.black,
-                                height: 1.2,
+                            Flexible(
+                              child: Text(
+                                AppTranslationKeys.documentsAddDocumentFrom
+                                    .tr(),
+                                textAlign: TextAlign.right,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextTheme.sheetTitleStyle,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            AppGaps.hGapM,
                             GlassIconButton(
                               icon: const Icon(
                                 CupertinoIcons.xmark,
                                 color: AppColors.black,
                               ),
-                              size: 62,
-                              iconSize: 24,
+                              size: AppSizes.barControl,
+                              iconSize: AppSizes.sourceIcon,
                               useOwnLayer: true,
                               settings: AppGlass.settings(
-                                glassColor: AppColors.white.withValues(
-                                  alpha: 0.85,
-                                ),
+                                glassColor: AppColors.glassWhite,
                               ),
                               onPressed: () => Navigator.of(context).pop(),
                             ),
@@ -197,26 +193,30 @@ class _SourcePill extends StatelessWidget {
     return GlassButton.custom(
       onTap: onTap,
       label: label,
-      height: 50,
-      shape: const LiquidRoundedRectangle(borderRadius: 999),
+      height: AppSizes.sourcePillHeight,
+      shape: const LiquidRoundedRectangle(borderRadius: AppRadii.pill),
       style: GlassButtonStyle.prominent,
       useOwnLayer: true,
-      settings: AppGlass.settings(
-        glassColor: AppColors.white.withValues(alpha: 0.85),
-      ),
+      settings: AppGlass.settings(glassColor: AppColors.glassWhite),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppGaps.xl,
+          vertical: AppGaps.l,
+        ),
         child: Row(
           children: [
-            Image.asset(iconAsset, width: 24, height: 24),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: AppTextTheme.logoLabelStyle.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.blackTextColor,
-                fontSize: 16,
-                height: 1,
+            Image.asset(
+              iconAsset,
+              width: AppSizes.sourceIcon,
+              height: AppSizes.sourceIcon,
+            ),
+            AppGaps.hGapS,
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextTheme.sheetSourcePillStyle,
               ),
             ),
           ],

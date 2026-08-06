@@ -2,19 +2,18 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:signica/presentation/const/colors.dart';
+import 'package:signica/presentation/const/dimensions.dart';
 import 'package:signica/presentation/const/glass.dart';
 import 'package:signica/presentation/const/text_theme.dart';
 import 'package:signica/presentation/const/translation_keys.dart';
 
-const double _controlSize = 48;
-
-LiquidGlassSettings _lightGlass() => AppGlass.settings(
+LiquidGlassSettings _barGlass(Color glassColor) => AppGlass.settings(
   refraction: 29,
   depth: 17,
   dispersion: 50,
   frost: 10,
   lightIntensity: 80,
-  glassColor: AppColors.white.withValues(alpha: 0.5),
+  glassColor: glassColor,
 );
 
 class DocumentsBottomBar extends StatelessWidget {
@@ -45,7 +44,7 @@ class DocumentsBottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+        padding: AppInsets.bottomBar,
         child: switch ((isSelectionMode, isSearching)) {
           (true, _) => _SelectionActions(
             enabled: hasSelection,
@@ -78,14 +77,14 @@ class _BrowseActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _RoundGlassButton(
           icon: CupertinoIcons.search,
           semanticLabel: AppTranslationKeys.documentsSearch.tr(),
           onPressed: onSearchOpen,
         ),
-        const Spacer(),
-        _AddDocumentButton(onTap: onAddDocument),
+        Flexible(child: _AddDocumentButton(onTap: onAddDocument)),
       ],
     );
   }
@@ -104,7 +103,7 @@ class _SearchActions extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(child: _SearchField(onChanged: onQueryChanged)),
-          const SizedBox(width: 12),
+          AppGaps.hGapM,
           _RoundGlassButton(
             icon: CupertinoIcons.xmark,
             semanticLabel: AppTranslationKeys.cancel.tr(),
@@ -121,22 +120,29 @@ class _RoundGlassButton extends StatelessWidget {
     required this.icon,
     required this.semanticLabel,
     required this.onPressed,
+    this.iconColor = AppColors.black,
+    this.enabled = true,
   });
 
   final IconData icon;
   final String semanticLabel;
   final VoidCallback onPressed;
+  final Color iconColor;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
-    return GlassIconButton(
-      icon: Icon(icon, color: AppColors.black),
-      size: _controlSize,
-      iconSize: 26,
-      useOwnLayer: true,
-      settings: _lightGlass(),
-      onPressed: onPressed,
-      semanticLabel: semanticLabel,
+    return Opacity(
+      opacity: enabled ? 1 : AppOpacities.disabledControl,
+      child: GlassIconButton(
+        icon: Icon(icon, color: iconColor),
+        size: AppSizes.barControl,
+        iconSize: AppSizes.barControlIcon,
+        useOwnLayer: true,
+        settings: _barGlass(AppColors.glassWhiteSoft),
+        onPressed: enabled ? onPressed : null,
+        semanticLabel: semanticLabel,
+      ),
     );
   }
 }
@@ -163,31 +169,25 @@ class _SearchFieldState extends State<_SearchField> {
   Widget build(BuildContext context) {
     return GlassContainer(
       useOwnLayer: true,
-      shape: const LiquidRoundedRectangle(borderRadius: 999),
-      settings: _lightGlass(),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      shape: const LiquidRoundedRectangle(borderRadius: AppRadii.pill),
+      settings: _barGlass(AppColors.glassWhiteSoft),
+      padding: const EdgeInsets.symmetric(horizontal: AppGaps.m),
       child: Row(
         children: [
-          const Icon(CupertinoIcons.search, size: 24, color: AppColors.black),
-          const SizedBox(width: 12),
+          const Icon(
+            CupertinoIcons.search,
+            size: AppSizes.sourceIcon,
+            color: AppColors.black,
+          ),
+          AppGaps.hGapM,
           Expanded(
             child: CupertinoTextField(
               controller: _controller,
               onChanged: widget.onChanged,
               autofocus: true,
               placeholder: AppTranslationKeys.documentsSearchPlaceholder.tr(),
-              placeholderStyle: AppTextTheme.logoLabelStyle.copyWith(
-                fontSize: 17,
-                fontWeight: FontWeight.w400,
-                color: AppColors.blackTextColor.withValues(alpha: 0.4),
-                height: 1,
-              ),
-              style: AppTextTheme.logoLabelStyle.copyWith(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.black,
-                height: 1,
-              ),
+              placeholderStyle: AppTextTheme.searchPlaceholderStyle,
+              style: AppTextTheme.searchFieldStyle,
               cursorColor: AppColors.accentGreen,
               decoration: const BoxDecoration(),
               padding: EdgeInsets.zero,
@@ -215,39 +215,21 @@ class _SelectionActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Opacity(
-          opacity: enabled ? 1 : 0.4,
-          child: GlassIconButton(
-            icon: const Icon(
-              CupertinoIcons.delete,
-              color: CupertinoColors.destructiveRed,
-            ),
-            size: _controlSize,
-            iconSize: 26,
-            useOwnLayer: true,
-            settings: _lightGlass(),
-            onPressed: enabled ? onDelete : null,
-            semanticLabel: AppTranslationKeys.selectionDelete.tr(),
-          ),
+        _RoundGlassButton(
+          icon: CupertinoIcons.delete,
+          iconColor: AppColors.actionRed,
+          enabled: enabled,
+          onPressed: onDelete,
+          semanticLabel: AppTranslationKeys.selectionDelete.tr(),
         ),
         const Spacer(),
-        Opacity(
-          opacity: enabled ? 1 : 0.4,
-          child: Builder(
-            builder: (buttonContext) => GlassIconButton(
-              icon: const Icon(
-                CupertinoIcons.share,
-                color: AppColors.blackTextColor,
-              ),
-              size: _controlSize,
-              iconSize: 26,
-              useOwnLayer: true,
-              settings: _lightGlass(),
-              onPressed: enabled
-                  ? () => onShare(_originOf(buttonContext))
-                  : null,
-              semanticLabel: AppTranslationKeys.selectionShare.tr(),
-            ),
+        Builder(
+          builder: (buttonContext) => _RoundGlassButton(
+            icon: CupertinoIcons.share,
+            iconColor: AppColors.blackTextColor,
+            enabled: enabled,
+            onPressed: () => onShare(_originOf(buttonContext)),
+            semanticLabel: AppTranslationKeys.selectionShare.tr(),
           ),
         ),
       ],
@@ -271,44 +253,36 @@ class _AddDocumentButton extends StatelessWidget {
     return GlassButton.custom(
       onTap: onTap,
       label: AppTranslationKeys.documentsAddDocument.tr(),
-      height: 61,
-      shape: const LiquidRoundedRectangle(borderRadius: 999),
+      height: AppSizes.addDocumentHeight,
+      shape: const LiquidRoundedRectangle(borderRadius: AppRadii.pill),
       style: GlassButtonStyle.prominent,
       useOwnLayer: true,
-      settings: AppGlass.settings(
-        refraction: 29,
-        depth: 17,
-        dispersion: 50,
-        frost: 10,
-        lightIntensity: 80,
-        glassColor: AppColors.accentGreen.withValues(alpha: 0.95),
-      ),
+      settings: _barGlass(AppColors.addDocumentGlass),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: AppInsets.addDocumentButton,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 25,
-              height: 25,
+              width: AppSizes.addDocumentIcon,
+              height: AppSizes.addDocumentIcon,
               decoration: const BoxDecoration(
                 color: AppColors.black,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 CupertinoIcons.add,
-                size: 14,
+                size: AppSizes.filledCircleGlyph,
                 color: AppColors.white,
               ),
             ),
-            const SizedBox(width: 8),
-            Text(
-              AppTranslationKeys.documentsAddDocument.tr(),
-              style: AppTextTheme.logoLabelStyle.copyWith(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.greyTextColor,
-                height: 1,
+            AppGaps.hGapS,
+            Flexible(
+              child: Text(
+                AppTranslationKeys.documentsAddDocument.tr(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextTheme.addDocumentStyle,
               ),
             ),
           ],

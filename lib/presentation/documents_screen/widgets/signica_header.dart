@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:signica/presentation/const/assets.dart';
 import 'package:signica/presentation/const/colors.dart';
+import 'package:signica/presentation/const/dimensions.dart';
 import 'package:signica/presentation/const/glass.dart';
 import 'package:signica/presentation/const/text_theme.dart';
 import 'package:signica/presentation/const/translation_keys.dart';
@@ -13,7 +14,6 @@ class SignicaHeader extends StatefulWidget implements PreferredSizeWidget {
   const SignicaHeader({
     super.key,
     required this.onAddDocument,
-    required this.onClearAll,
     required this.onEnterSelectionMode,
     required this.onExitSelectionMode,
     required this.onToggleSelectAll,
@@ -22,7 +22,6 @@ class SignicaHeader extends StatefulWidget implements PreferredSizeWidget {
   });
 
   final VoidCallback onAddDocument;
-  final VoidCallback onClearAll;
   final VoidCallback onEnterSelectionMode;
   final VoidCallback onExitSelectionMode;
   final VoidCallback onToggleSelectAll;
@@ -30,7 +29,7 @@ class SignicaHeader extends StatefulWidget implements PreferredSizeWidget {
   final int selectedCount;
 
   @override
-  Size get preferredSize => const Size.fromHeight(66);
+  Size get preferredSize => const Size.fromHeight(AppSizes.headerHeight);
 
   @override
   State<SignicaHeader> createState() => _SignicaHeaderState();
@@ -56,7 +55,6 @@ class _SignicaHeaderState extends State<SignicaHeader> {
         onDismissed: _closeMenu,
         onSelect: widget.onEnterSelectionMode,
         onAddDocument: widget.onAddDocument,
-        onClearAll: widget.onClearAll,
       ),
     );
     _menuEntry = entry;
@@ -79,9 +77,9 @@ class _SignicaHeaderState extends State<SignicaHeader> {
     return SafeArea(
       bottom: false,
       child: SizedBox(
-        height: 66,
+        height: AppSizes.headerHeight,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: AppInsets.header,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -93,27 +91,31 @@ class _SignicaHeaderState extends State<SignicaHeader> {
                       )
                     : const _AppLogo(),
               ),
-              const SizedBox(width: 12),
+              AppGaps.hGapM,
               widget.isSelectionMode
                   ? GlassButton(
-                      glowColor: AppColors.white.withValues(alpha: 0.1),
+                      glowColor: AppColors.buttonGlow,
                       icon: const Icon(CupertinoIcons.xmark),
-                      iconColor: Colors.white,
-                      iconSize: 20,
-                      width: 38,
-                      height: 38,
-                      shape: LiquidRoundedRectangle(borderRadius: 19),
+                      iconColor: AppColors.white,
+                      iconSize: AppSizes.menuIcon,
+                      width: AppSizes.headerButton,
+                      height: AppSizes.headerButton,
+                      shape: const LiquidRoundedRectangle(
+                        borderRadius: AppRadii.pill,
+                      ),
                       onTap: widget.onExitSelectionMode,
                     )
                   : CompositedTransformTarget(
                       link: _menuLink,
                       child: GlassButton(
-                        glowColor: AppColors.white.withValues(alpha: 0.1),
-                        icon: const Icon(Icons.more_horiz),
-                        iconColor: Colors.white,
-                        width: 38,
-                        height: 38,
-                        shape: LiquidRoundedRectangle(borderRadius: 16),
+                        glowColor: AppColors.buttonGlow,
+                        icon: const Icon(CupertinoIcons.ellipsis),
+                        iconColor: AppColors.white,
+                        width: AppSizes.headerButton,
+                        height: AppSizes.headerButton,
+                        shape: const LiquidRoundedRectangle(
+                          borderRadius: AppRadii.control,
+                        ),
                         onTap: _toggleMenu,
                       ),
                     ),
@@ -134,10 +136,14 @@ class _AppLogo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         SvgPicture.asset(AppAssets.logo),
-        const SizedBox(width: 10),
-        Text(
-          AppTranslationKeys.appName.tr(),
-          style: AppTextTheme.logoLabelStyle,
+        AppGaps.hGapS,
+        Flexible(
+          child: Text(
+            AppTranslationKeys.appName.tr(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextTheme.logoLabelStyle,
+          ),
         ),
       ],
     );
@@ -163,19 +169,15 @@ class _SelectAllButton extends StatelessWidget {
       child: GlassButton.custom(
         onTap: onTap,
         label: label,
-        glowColor: AppColors.white.withValues(alpha: 0.1),
-        shape: const LiquidRoundedRectangle(borderRadius: 999),
+        glowColor: AppColors.buttonGlow,
+        shape: const LiquidRoundedRectangle(borderRadius: AppRadii.pill),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          padding: AppInsets.selectAllButton,
           child: Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTextTheme.logoLabelStyle.copyWith(
-              fontSize: 14,
-              height: 18 / 14,
-              fontWeight: FontWeight.w700,
-            ),
+            style: AppTextTheme.selectAllStyle,
           ),
         ),
       ),
@@ -189,14 +191,12 @@ class _HeaderMenuOverlay extends StatefulWidget {
     required this.onDismissed,
     required this.onSelect,
     required this.onAddDocument,
-    required this.onClearAll,
   });
 
   final LayerLink layerLink;
   final VoidCallback onDismissed;
   final VoidCallback onSelect;
   final VoidCallback onAddDocument;
-  final VoidCallback onClearAll;
 
   @override
   State<_HeaderMenuOverlay> createState() => _HeaderMenuOverlayState();
@@ -206,7 +206,7 @@ class _HeaderMenuOverlayState extends State<_HeaderMenuOverlay>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 160),
+    duration: AppDurations.menu,
   )..forward();
 
   Future<void> _dismiss() async {
@@ -254,10 +254,6 @@ class _HeaderMenuOverlayState extends State<_HeaderMenuOverlay>
                   await _dismiss();
                   widget.onAddDocument();
                 },
-                onClearAll: () async {
-                  await _dismiss();
-                  widget.onClearAll();
-                },
               ),
             ),
           ),
@@ -271,27 +267,24 @@ class _HeaderMenuCard extends StatelessWidget {
   const _HeaderMenuCard({
     required this.onSelect,
     required this.onAddDocument,
-    required this.onClearAll,
   });
 
   final VoidCallback onSelect;
   final VoidCallback onAddDocument;
-  final VoidCallback onClearAll;
 
   @override
   Widget build(BuildContext context) {
     return GlassContainer(
-      width: 220,
+      width: AppSizes.menuCardWidth,
       allowElevation: true,
       useOwnLayer: true,
-      settings: AppGlass.settings(
-        glassColor: Colors.white.withValues(alpha: 0.75),
-        frost: 16,
+      settings: AppGlass.panel(
+        glassColor: AppColors.menuCardGlass,
         whitenStrength: 0.2,
-        shadowElevation: 3,
+        shadowElevation: 1.5,
       ),
-      shape: LiquidRoundedRectangle(borderRadius: 30),
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      shape: const LiquidRoundedRectangle(borderRadius: AppRadii.menuCard),
+      padding: const EdgeInsets.symmetric(vertical: AppGaps.xxs),
       child: Material(
         type: MaterialType.transparency,
         child: Column(
@@ -301,8 +294,8 @@ class _HeaderMenuCard extends StatelessWidget {
               label: AppTranslationKeys.menuSelect.tr(),
               icon: const Icon(
                 CupertinoIcons.checkmark_circle,
-                size: 20,
-                color: Colors.black,
+                size: AppSizes.menuIcon,
+                color: AppColors.black,
               ),
               onTap: onSelect,
             ),
@@ -311,32 +304,9 @@ class _HeaderMenuCard extends StatelessWidget {
               icon: const _FilledCircleIcon(icon: CupertinoIcons.add),
               onTap: onAddDocument,
             ),
-            const _HeaderMenuDivider(),
-            _HeaderMenuTile(
-              label: AppTranslationKeys.menuClearAll.tr(),
-              icon: const Icon(
-                CupertinoIcons.trash,
-                size: 20,
-                color: CupertinoColors.destructiveRed,
-              ),
-              isDestructive: true,
-              onTap: onClearAll,
-            ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _HeaderMenuDivider extends StatelessWidget {
-  const _HeaderMenuDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 2),
-      child: Container(height: 1, color: Colors.black.withValues(alpha: 0.08)),
     );
   }
 }
@@ -346,36 +316,26 @@ class _HeaderMenuTile extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onTap,
-    this.isDestructive = false,
   });
 
   final String label;
   final Widget icon;
   final VoidCallback onTap;
-  final bool isDestructive;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+        padding: AppInsets.menuTile,
         child: Row(
           children: [
             icon,
-            const SizedBox(width: 14),
+            AppGaps.hGapL,
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w400,
-                  height: 20 / 17,
-                  letterSpacing: -0.43,
-                  color: isDestructive
-                      ? CupertinoColors.destructiveRed
-                      : Colors.black,
-                ),
+                style:AppTextTheme.menuTileStyle,
               ),
             ),
           ],
@@ -393,13 +353,17 @@ class _FilledCircleIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 20,
-      height: 20,
+      width: AppSizes.menuIcon,
+      height: AppSizes.menuIcon,
       decoration: const BoxDecoration(
-        color: Colors.black,
+        color: AppColors.black,
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, size: 12, color: Colors.white),
+      child: Icon(
+        icon,
+        size: AppSizes.filledCircleGlyph - 2,
+        color: AppColors.white,
+      ),
     );
   }
 }

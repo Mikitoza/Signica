@@ -1,14 +1,13 @@
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:signica/domain/entities/document_entity.dart';
 import 'package:signica/presentation/const/assets.dart';
 import 'package:signica/presentation/const/colors.dart';
+import 'package:signica/presentation/const/dimensions.dart';
 import 'package:signica/presentation/const/glass.dart';
 import 'package:signica/presentation/const/text_theme.dart';
 import 'package:signica/presentation/const/translation_keys.dart';
@@ -49,43 +48,43 @@ class DocumentsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top + 66),
+      padding: EdgeInsets.only(
+        top: MediaQuery.paddingOf(context).top + AppSizes.headerHeight,
+      ),
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
           color: AppColors.scaffoldBackgroundColor,
-          borderRadius: BorderRadius.circular(36),
+          borderRadius: BorderRadius.circular(AppRadii.board),
         ),
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.only(
-                left: 12,
-                right: 12,
-                top: 16,
-                bottom: 20,
-              ),
+              padding: AppInsets.segmentedControl,
               child: GlassSegmentedControl(
                 segments: [
                   GlassSegment(label: AppTranslationKeys.filterAll.tr()),
                   GlassSegment(label: AppTranslationKeys.filterSigned.tr()),
                   GlassSegment(label: AppTranslationKeys.filterUnsigned.tr()),
                 ],
-                backgroundColor: AppColors.segmentBackgroundColor.withValues(
-                  alpha: 0.12,
+                backgroundColor: AppColors.segmentBackground,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppGaps.s,
+                  vertical: AppGaps.xs,
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                labelPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                labelPadding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 indicatorColor: AppColors.white,
                 selectedIndex: selectedFilter,
                 onSegmentSelected: onFilterSelected,
-                height: 36,
+                height: AppSizes.segmentControlHeight,
                 useOwnLayer: true,
                 selectedTextStyle: AppTextTheme.segmentLabelStyle,
                 unselectedTextStyle: AppTextTheme.segmentLabelStyle,
               ),
             ),
-
             Expanded(
               child: _DocumentsContent(
                 documents: documents,
@@ -149,9 +148,15 @@ class _DocumentsContent extends StatelessWidget {
 
     if (documents.isEmpty) {
       return Center(
-        child: Text(
-          AppTranslationKeys.documentsNoResults.tr(),
-          style: AppTextTheme.smallTextStyle,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppInsets.screenHorizontal,
+          ),
+          child: Text(
+            AppTranslationKeys.documentsNoResults.tr(),
+            textAlign: TextAlign.center,
+            style: AppTextTheme.smallTextStyle,
+          ),
         ),
       );
     }
@@ -183,56 +188,81 @@ class EmptyDocumentsState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(height: 46),
-        Image.asset(AppAssets.documentPreview, fit: BoxFit.cover),
-        const SizedBox(height: 18),
-        Text(
-          AppTranslationKeys.emptyTitle.tr(),
-          style: AppTextTheme.logoLabelStyle.copyWith(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: AppColors.greyTextColor,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppInsets.screenHorizontal,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const SizedBox(height: AppInsets.emptyStateTop),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight:
+                          constraints.maxHeight *
+                          AppRatios.emptyIllustrationHeight,
+                      maxWidth: constraints.maxWidth,
+                    ),
+                    child: Image.asset(
+                      AppAssets.documentPreview,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  AppGaps.gapL,
+                  Text(
+                    AppTranslationKeys.emptyTitle.tr(),
+                    textAlign: TextAlign.center,
+                    style: AppTextTheme.emptyTitleStyle,
+                  ),
+                  AppGaps.gapXs,
+                  Text(
+                    AppTranslationKeys.emptySubtitle.tr(),
+                    textAlign: TextAlign.center,
+                    style: AppTextTheme.smallTextStyle,
+                  ),
+                  AppGaps.gapXl,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: AppGaps.m,
+                    runSpacing: AppGaps.m,
+                    children: [
+                      SourcePill(
+                        iconAsset: AppAssets.filesIcon,
+                        label: AppTranslationKeys.sourceFiles.tr(),
+                        enabled: !isImporting,
+                        onTap: onPickFiles,
+                      ),
+                      SourcePill(
+                        iconAsset: AppAssets.photoIcon,
+                        label: AppTranslationKeys.sourcePhotos.tr(),
+                        enabled: !isImporting,
+                        onTap: onPickPhotos,
+                      ),
+                      SourcePill(
+                        iconAsset: AppAssets.cameraIcon,
+                        label: AppTranslationKeys.sourceScanner.tr(),
+                        enabled: !isImporting,
+                        onTap: onPickScanner,
+                      ),
+                    ],
+                  ),
+                  if (isImporting) ...[
+                    AppGaps.gapXl,
+                    const CupertinoActivityIndicator(),
+                  ],
+                  const SizedBox(height: AppInsets.gridBottom),
+                ],
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          AppTranslationKeys.emptySubtitle.tr(),
-          style: AppTextTheme.smallTextStyle,
-        ),
-        const SizedBox(height: 20),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SourcePill(
-              iconAsset: AppAssets.filesIcon,
-              label: AppTranslationKeys.sourceFiles.tr(),
-              enabled: !isImporting,
-              onTap: onPickFiles,
-            ),
-            const SizedBox(width: 12),
-            SourcePill(
-              iconAsset: AppAssets.photoIcon,
-              label: AppTranslationKeys.sourcePhotos.tr(),
-              enabled: !isImporting,
-              onTap: onPickPhotos,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        SourcePill(
-          iconAsset: AppAssets.cameraIcon,
-          label: AppTranslationKeys.sourceScanner.tr(),
-          enabled: !isImporting,
-          onTap: onPickScanner,
-        ),
-        if (isImporting) ...[
-          const SizedBox(height: 20),
-          const CupertinoActivityIndicator(),
-        ],
-      ],
+        );
+      },
     );
   }
 }
@@ -254,31 +284,35 @@ class SourcePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Opacity(
-      opacity: enabled ? 1 : 0.5,
+      opacity: enabled ? 1 : AppOpacities.disabledPill,
       child: GlassButton.custom(
         onTap: onTap,
         enabled: enabled,
         label: label,
-        shape: const LiquidRoundedRectangle(borderRadius: 999),
+        shape: const LiquidRoundedRectangle(borderRadius: AppRadii.pill),
         style: GlassButtonStyle.prominent,
         useOwnLayer: true,
-        settings: AppGlass.settings(
-          glassColor: AppColors.white.withValues(alpha: 0.85),
-        ),
+        settings: AppGlass.settings(glassColor: AppColors.glassWhite),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppGaps.xl,
+            vertical: AppGaps.m,
+          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(iconAsset, width: 24, height: 24),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: AppTextTheme.logoLabelStyle.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.blackTextColor,
-                  fontSize: 20,
-                  height: 1,
+              Image.asset(
+                iconAsset,
+                width: AppSizes.sourceIcon,
+                height: AppSizes.sourceIcon,
+              ),
+              AppGaps.hGapS,
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextTheme.sourcePillStyle,
                 ),
               ),
             ],
@@ -310,13 +344,13 @@ class DocumentsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(36, 4, 36, 100),
+      padding: AppInsets.grid,
       physics: const BouncingScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 32,
-        mainAxisSpacing: 40,
-        childAspectRatio: 0.67,
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: AppGrid.maxTileExtent,
+        crossAxisSpacing: AppGrid.crossSpacing,
+        mainAxisSpacing: AppGrid.mainSpacing,
+        childAspectRatio: AppGrid.tileAspectRatio,
       ),
       itemCount: documents.length,
       itemBuilder: (context, index) {
@@ -411,7 +445,7 @@ class _DocumentTileBody extends StatelessWidget {
                 const Positioned(
                   left: 0,
                   right: 0,
-                  bottom: -6,
+                  bottom: AppSizes.signedBadgeOverhang,
                   child: Center(child: _SignedBadge()),
                 ),
               if (isSelectionMode)
@@ -421,22 +455,20 @@ class _DocumentTileBody extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 10),
+        AppGaps.gapS,
         Text(
           document.title,
           textAlign: TextAlign.center,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppTextTheme.logoLabelStyle.copyWith(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.blackTextColor,
-          ),
+          style: AppTextTheme.documentTitleStyle,
         ),
-        const SizedBox(height: 2),
+        AppGaps.gapXxs,
         Text(
           _formatDate(document.createdAt),
-          style: AppTextTheme.smallTextStyle.copyWith(fontSize: 12),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextTheme.documentDateStyle,
         ),
       ],
     );
@@ -449,20 +481,24 @@ class _SignedBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassContainer(
-      width: 42,
-      height: 42,
+      width: AppSizes.signedBadge,
+      height: AppSizes.signedBadge,
       useOwnLayer: true,
-      shape: const LiquidRoundedRectangle(borderRadius: 20),
+      shape: const LiquidRoundedRectangle(borderRadius: AppRadii.signedBadge),
       settings: AppGlass.settings(
         refraction: 0,
         depth: 20,
         dispersion: 50,
         frost: 25,
         lightIntensity: 80,
-        glassColor: AppColors.white.withValues(alpha: 0.75),
+        glassColor: AppColors.signedBadgeGlass,
       ),
       child: Center(
-        child: SvgPicture.asset(AppAssets.signedIcon, width: 24, height: 23),
+        child: SvgPicture.asset(
+          AppAssets.signedIcon,
+          width: AppSizes.signedIconWidth,
+          height: AppSizes.signedIconHeight,
+        ),
       ),
     );
   }
@@ -473,32 +509,26 @@ class _SelectionBadge extends StatelessWidget {
 
   final bool isSelected;
 
-  static const _fillDiameter = 36.0;
-  static const _borderWidth = 3.0;
-  static const _shadowColor = Color(0x99000000);
-  static const _shadowBlur = 2.0;
-  static const _shadowOffset = Offset(0, 1);
-
   @override
   Widget build(BuildContext context) {
     final badge = AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
+      duration: AppDurations.badge,
       curve: Curves.easeOut,
-      width: _fillDiameter + _borderWidth * 2,
-      height: _fillDiameter + _borderWidth * 2,
+      width: AppSizes.selectionFill + AppSizes.selectionBorder * 2,
+      height: AppSizes.selectionFill + AppSizes.selectionBorder * 2,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isSelected ? AppColors.selectionGreen : Colors.transparent,
-        border: Border.all(color: AppColors.white, width: _borderWidth),
-        // A BoxShadow is cast by the whole circle. That is right once the badge
-        // is filled, but on an unselected one it would darken the transparent
-        // middle — hence the ring-only painter below.
+        color: isSelected ? AppColors.selectionGreen : AppColors.transparent,
+        border: Border.all(
+          color: AppColors.white,
+          width: AppSizes.selectionBorder,
+        ),
         boxShadow: isSelected
             ? const [
                 BoxShadow(
-                  color: _shadowColor,
-                  blurRadius: _shadowBlur,
-                  offset: _shadowOffset,
+                  color: AppColors.badgeShadow,
+                  blurRadius: AppShadows.badgeBlur,
+                  offset: AppShadows.badgeOffset,
                 ),
               ]
             : null,
@@ -506,7 +536,7 @@ class _SelectionBadge extends StatelessWidget {
       child: isSelected
           ? const Icon(
               CupertinoIcons.checkmark_alt,
-              size: 26,
+              size: AppSizes.selectionCheck,
               color: AppColors.white,
             )
           : null,
@@ -516,18 +546,16 @@ class _SelectionBadge extends StatelessWidget {
 
     return CustomPaint(
       painter: const _RingShadowPainter(
-        strokeWidth: _borderWidth,
-        color: _shadowColor,
-        blurRadius: _shadowBlur,
-        offset: _shadowOffset,
+        strokeWidth: AppSizes.selectionBorder,
+        color: AppColors.badgeShadow,
+        blurRadius: AppShadows.badgeBlur,
+        offset: AppShadows.badgeOffset,
       ),
       child: badge,
     );
   }
 }
 
-/// Casts the badge's drop shadow from the ring alone, so an unselected badge
-/// reads against a white page without tinting its transparent middle.
 class _RingShadowPainter extends CustomPainter {
   const _RingShadowPainter({
     required this.strokeWidth,
@@ -551,9 +579,6 @@ class _RingShadowPainter extends CustomPainter {
         BlurStyle.normal,
         Shadow.convertRadiusToSigma(blurRadius),
       );
-
-    // The border sits inside the box, so the ring's centre line is half a
-    // stroke in from the edge.
     final radius = (size.shortestSide - strokeWidth) / 2;
     canvas.drawCircle(size.center(offset), radius, paint);
   }
@@ -570,8 +595,6 @@ class _DocumentThumbnail extends StatelessWidget {
   const _DocumentThumbnail({required this.document});
 
   final DocumentEntity document;
-
-  static const _frontPageTilt = 3 * math.pi / 180;
 
   @override
   Widget build(BuildContext context) {
@@ -591,26 +614,31 @@ class _DocumentThumbnail extends StatelessWidget {
       );
     }
 
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          left: 8,
-          right: -8,
-          top: -8,
-          bottom: 8,
-          child: _ThumbnailPage(child: _PreviewImage(path: lastPagePath)),
-        ),
-        Positioned.fill(
-          child: Transform.rotate(
-            angle: _frontPageTilt,
-            child: _ThumbnailPage(
-              elevated: true,
-              child: _PreviewImage(path: firstPagePath),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final offset = constraints.maxWidth * AppRatios.backPageOffset;
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              left: offset,
+              right: -offset,
+              top: -offset,
+              bottom: offset,
+              child: _ThumbnailPage(child: _PreviewImage(path: lastPagePath)),
             ),
-          ),
-        ),
-      ],
+            Positioned.fill(
+              child: Transform.rotate(
+                angle: AppRatios.frontPageTilt,
+                child: _ThumbnailPage(
+                  elevated: true,
+                  child: _PreviewImage(path: firstPagePath),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -642,14 +670,14 @@ class _ThumbnailPage extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE3E3E6)),
+        borderRadius: BorderRadius.circular(AppRadii.page),
+        border: Border.all(color: AppColors.pageBorder),
         boxShadow: elevated
             ? const [
                 BoxShadow(
-                  color: Color(0x14000000),
-                  blurRadius: 12,
-                  offset: Offset(0, 6),
+                  color: AppColors.pageShadow,
+                  blurRadius: AppShadows.pageBlur,
+                  offset: AppShadows.pageOffset,
                 ),
               ]
             : null,
