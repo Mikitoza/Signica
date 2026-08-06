@@ -3,12 +3,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
-import 'presentation/documents_screen/documents_screen.dart';
+import 'injection/injector.dart';
+import 'presentation/router/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   await LiquidGlassWidgets.initialize();
+  configureDependencies();
 
   runApp(
     EasyLocalization(
@@ -28,7 +30,7 @@ class SignicaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoApp(
+    return CupertinoApp.router(
       title: 'Signica',
       debugShowCheckedModeBanner: false,
       localizationsDelegates: context.localizationDelegates,
@@ -41,7 +43,7 @@ class SignicaApp extends StatelessWidget {
           textStyle: TextStyle(fontFamily: 'Inter'),
         ),
       ),
-      home: const DocumentsScreen(),
+      routerConfig: getIt<AppRouter>().config(),
     );
   }
 }

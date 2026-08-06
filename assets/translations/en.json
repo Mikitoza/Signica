@@ -1,6 +1,7 @@
 {
   "common": {
-    "appName": "Signica"
+    "appName": "Signica",
+    "cancel": "Cancel"
   },
   "documents": {
     "filters": {
@@ -18,10 +19,17 @@
       "scanner": "Scanner"
     },
     "search": "Search",
-    "addDocument": "Add Document"
+    "addDocument": "Add Document",
+    "addDocumentFrom": "Add Document From",
+    "searchPlaceholder": "Search Documents",
+    "noResults": "No documents found"
   },
   "menu": {
     "select": "Select",
-    "addDocument": "Add Document"
+    "addDocument": "Add Document",
+    "clearAll": "Clear All",
+    "clearAllConfirmTitle": "Clear All Documents?",
+    "clearAllConfirmMessage": "This will permanently delete all saved documents. This action cannot be undone.",
+    "clearAllConfirmAction": "Clear All"
   }
 }

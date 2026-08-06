@@ -9,4 +9,5 @@ class AppColors{
   static const segmentBackgroundColor = Color(0xFF767680);
   static const greyTextColor = Color(0xFF303030);
   static const blackTextColor = Color(0xFF373737);
+  static const accentGreen = Color(0xFF8FE637);
 }

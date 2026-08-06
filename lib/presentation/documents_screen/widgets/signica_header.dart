@@ -9,7 +9,14 @@ import 'package:signica/presentation/const/text_theme.dart';
 import 'package:signica/presentation/const/translation_keys.dart';
 
 class SignicaHeader extends StatefulWidget implements PreferredSizeWidget {
-  const SignicaHeader({super.key});
+  const SignicaHeader({
+    super.key,
+    required this.onAddDocument,
+    required this.onClearAll,
+  });
+
+  final VoidCallback onAddDocument;
+  final VoidCallback onClearAll;
 
   @override
   Size get preferredSize => const Size.fromHeight(66);
@@ -33,8 +40,12 @@ class _SignicaHeaderState extends State<SignicaHeader> {
   void _openMenu() {
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(
-      builder: (context) =>
-          _HeaderMenuOverlay(layerLink: _menuLink, onDismissed: _closeMenu),
+      builder: (context) => _HeaderMenuOverlay(
+        layerLink: _menuLink,
+        onDismissed: _closeMenu,
+        onAddDocument: widget.onAddDocument,
+        onClearAll: widget.onClearAll,
+      ),
     );
     _menuEntry = entry;
     overlay.insert(entry);
@@ -96,10 +107,14 @@ class _HeaderMenuOverlay extends StatefulWidget {
   const _HeaderMenuOverlay({
     required this.layerLink,
     required this.onDismissed,
+    required this.onAddDocument,
+    required this.onClearAll,
   });
 
   final LayerLink layerLink;
   final VoidCallback onDismissed;
+  final VoidCallback onAddDocument;
+  final VoidCallback onClearAll;
 
   @override
   State<_HeaderMenuOverlay> createState() => _HeaderMenuOverlayState();
@@ -153,9 +168,13 @@ class _HeaderMenuOverlayState extends State<_HeaderMenuOverlay>
                   _dismiss();
                   // TODO: wire up multi-select mode once it exists.
                 },
-                onAddDocument: () {
-                  _dismiss();
-                  // TODO: wire up the add-document flow.
+                onAddDocument: () async {
+                  await _dismiss();
+                  widget.onAddDocument();
+                },
+                onClearAll: () async {
+                  await _dismiss();
+                  widget.onClearAll();
                 },
               ),
             ),
@@ -167,20 +186,21 @@ class _HeaderMenuOverlayState extends State<_HeaderMenuOverlay>
 }
 
 class _HeaderMenuCard extends StatelessWidget {
-  const _HeaderMenuCard({required this.onSelect, required this.onAddDocument});
+  const _HeaderMenuCard({
+    required this.onSelect,
+    required this.onAddDocument,
+    required this.onClearAll,
+  });
 
   final VoidCallback onSelect;
   final VoidCallback onAddDocument;
+  final VoidCallback onClearAll;
 
   @override
   Widget build(BuildContext context) {
     return GlassContainer(
       width: 220,
       allowElevation: true,
-      // Rendered through an OverlayEntry, outside the page's own
-      // LiquidGlassLayer — grouped (non-own-layer) glass needs to be inside
-      // one, so without this the settings below get ignored and compositing
-      // breaks (stray border/seam around the card).
       useOwnLayer: true,
       settings: LiquidGlassSettings(
         glassColor: Colors.white.withValues(alpha: 0.75),
@@ -209,9 +229,32 @@ class _HeaderMenuCard extends StatelessWidget {
               icon: const _FilledCircleIcon(icon: CupertinoIcons.add),
               onTap: onAddDocument,
             ),
+            const _HeaderMenuDivider(),
+            _HeaderMenuTile(
+              label: AppTranslationKeys.menuClearAll.tr(),
+              icon: const Icon(
+                CupertinoIcons.trash,
+                size: 20,
+                color: CupertinoColors.destructiveRed,
+              ),
+              isDestructive: true,
+              onTap: onClearAll,
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _HeaderMenuDivider extends StatelessWidget {
+  const _HeaderMenuDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 2),
+      child: Container(height: 1, color: Colors.black.withValues(alpha: 0.08)),
     );
   }
 }
@@ -221,11 +264,13 @@ class _HeaderMenuTile extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onTap,
+    this.isDestructive = false,
   });
 
   final String label;
   final Widget icon;
   final VoidCallback onTap;
+  final bool isDestructive;
 
   @override
   Widget build(BuildContext context) {
@@ -240,10 +285,12 @@ class _HeaderMenuTile extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black,
+                  color: isDestructive
+                      ? CupertinoColors.destructiveRed
+                      : Colors.black,
                 ),
               ),
             ),
